@@ -28,8 +28,14 @@ namespace SS2.Components
         {
             get
             {
-                GenericSkill gs = skillLocator.FindSkillByFamilyName("sfNemCapDeckFamily"); //sfNemCaptainDeck bastard
-                string skillName = gs.skillDef.skillName;
+
+                GenericSkill gs = skillLocator?.FindSkillByFamilyName("sfNemCaptainDeck");
+                string skillName = gs?.skillDef?.skillName;
+                if (skillName == null)
+                {
+                    deckFound = false;
+                    return null;
+                }
                 switch (skillName)
                 {
                     default :
@@ -51,9 +57,9 @@ namespace SS2.Components
         private SkillStateOverrideData TheSenatorOfAuthority;
         private bool isOverriding;
 
-        private bool order1Set;
-        private bool order2Set;
-        private bool order3Set;
+        private bool order1Set = false;
+        private bool order2Set = false;
+        private bool order3Set = false;
 
         private bool deckFound = false;
         [Header("Stress Values")]
@@ -214,6 +220,25 @@ namespace SS2.Components
                 amount /= 2;
 
             Network_stress = Mathf.Clamp(stress + amount, minStress, maxStress);
+        }
+
+        private void OnStressModified(float newStress)
+        {
+            //probably ui stuff here later gulp
+
+            Network_stress = newStress;
+
+            if (newStress >= maxStress && !isOverstressed)
+            {
+                //characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 1);
+                characterBody.AddBuff(SS2Content.Buffs.bdOverstress.buffIndex);
+            }
+
+            if (newStress <= minStress && isOverstressed)
+            {
+                //characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 0);
+                characterBody.RemoveBuff(SS2Content.Buffs.bdOverstress.buffIndex);
+            }
         }
 
         private void OnEnable()
@@ -536,24 +561,10 @@ namespace SS2.Components
                 num = stressPerSecondWhileOverstressed;
 
             //add final stress per second amount; no stress if invincible
-            if (NetworkServer.active && !characterBody.HasBuff(RoR2Content.Buffs.HiddenInvincibility))
+            if (NetworkServer.active && !(characterBody.HasBuff(RoR2Content.Buffs.HiddenInvincibility) || characterBody.HasBuff(RoR2Content.Buffs.Immune)))
                 AddStress(num * Time.fixedDeltaTime);
 
             UpdateUI();
-
-            //overstress toggle && check for empty hand
-            if (NetworkServer.active)
-            {
-                if (stress >= maxStress && !isOverstressed)
-                {
-                    characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 1);
-                }
-
-                if (stress <= minStress && isOverstressed)
-                {
-                    characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 0);
-                }
-            }
         }
 
         private void UpdateUI()
@@ -564,7 +575,7 @@ namespace SS2.Components
             }
             if (stressOverlayInstanceChildlocator)
             {
-                var wazzok = stressOverlayInstanceChildlocator.FindChild("StressThreshold");
+                Transform wazzok = stressOverlayInstanceChildlocator.FindChild("StressThreshold");
                 if (wazzok) //dwarven engineering at its finest
                     wazzok.rotation = Quaternion.Euler(0f, 0f, Mathf.InverseLerp(0f, maxStress, stress) * -360f);
                 //overlayInstanceChildlocator.FindChild("MinStressThreshold");
@@ -621,11 +632,7 @@ namespace SS2.Components
 
         }
 
-        private void OnStressModified(float newStress)
-        {
-            //probably ui stuff here later gulp
-            Network_stress = newStress;
-        }
+        
 
         public override void PreStartClient()
         {
