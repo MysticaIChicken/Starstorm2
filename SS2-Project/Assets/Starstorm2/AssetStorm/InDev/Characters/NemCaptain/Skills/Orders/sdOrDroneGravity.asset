@@ -40,7 +40,7 @@ MonoBehaviour:
   mustKeyPress: 0
   autoHandleLuminousShot: 1
   hideStockCount: 0
-  stressValue: 80
+  stressValue: 11
   canCastIfOverstressed: 1
-  canCastIfWillOverstress: 1
+  canCastIfWillOverstress: 0
   autoHandleOrderQueue: 1
