@@ -555,6 +555,8 @@ namespace SS2
 
             public static BuffDef bdOverstress;
 
+            public static BuffDef bdTotalReset;
+
             public static BuffDef bdNemCapDroneBuff;
 
             public static BuffDef bdKnightShield;

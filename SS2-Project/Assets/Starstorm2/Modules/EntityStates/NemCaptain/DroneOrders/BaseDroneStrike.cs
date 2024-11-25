@@ -119,7 +119,7 @@ namespace EntityStates.NemCaptain.Weapon
 
         private void FixedUpdateAuthority()
         {
-            if (!inputBank.skill1.down && fixedAge > minDur)
+            if (!IsKeyDownAuthority() && fixedAge > minDur)
             {
                 outer.SetNextStateToMain();
             }

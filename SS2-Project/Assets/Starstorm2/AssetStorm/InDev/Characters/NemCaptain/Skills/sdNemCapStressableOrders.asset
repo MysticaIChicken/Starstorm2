@@ -21,12 +21,14 @@ MonoBehaviour:
   activationState:
     _typeName: EntityStates.NemCaptain.Weapon.SetupDroneOrders, Starstorm2, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  interruptPriority: 2
+  interruptPriority: 1
   baseRechargeInterval: 0.5
   baseMaxStock: 1
   rechargeStock: 1
   requiredStock: 1
   stockToConsume: 0
+  attackSpeedBuffsRestockSpeed: 0
+  attackSpeedBuffsRestockSpeed_Multiplier: 1
   resetCooldownTimerOnUse: 0
   fullRestockOnAssign: 1
   dontAllowPastMaxStocks: 0
@@ -36,4 +38,6 @@ MonoBehaviour:
   canceledFromSprinting: 1
   isCombatSkill: 1
   mustKeyPress: 1
+  autoHandleLuminousShot: 1
+  hideStockCount: 0
   canCastIfOverstressed: 0
