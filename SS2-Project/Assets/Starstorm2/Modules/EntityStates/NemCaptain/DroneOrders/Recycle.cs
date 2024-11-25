@@ -25,6 +25,10 @@ namespace EntityStates.NemCaptain.Weapon
 
         public override void OnExit()
         {
+            activatorSkillSlot.SetSkillOverride(gameObject, ncc.GetRandomSkillDefFromDeck(), GenericSkill.SkillOverridePriority.Replacement);
+            EntityStateMachine esm = EntityStateMachine.FindByCustomName(gameObject, "Skillswap");
+            if (esm)
+                esm.SetNextStateToMain();
             base.OnExit();
         }
     }

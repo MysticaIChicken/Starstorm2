@@ -2,21 +2,14 @@
 {
     public class ForcedCooldown : BaseState
     {
-        public static float baseDuration = 0.5f;
-        private float duration;
+        public static float dur = 0.4f;
 
         //maybe play an animation here
-
-        public override void OnEnter()
-        {
-            base.OnEnter();
-            duration = baseDuration / attackSpeedStat;
-        }
 
         public override void FixedUpdate()
         {
             base.FixedUpdate();
-            if (fixedAge >= duration)
+            if (fixedAge >= dur)
                 outer.SetNextStateToMain();
         }
 

@@ -6,7 +6,7 @@ using MSU;
 using System.Collections;
 using RoR2.ContentManagement;
 using R2API;
-//#if DEBUG
+#if DEBUG
 namespace SS2.Survivors
 {
     public sealed class NemCaptain : SS2Survivor
@@ -55,8 +55,8 @@ namespace SS2.Survivors
 
         public override bool IsAvailable(ContentPack contentPack)
         {
-            return true;
+            return false;
         }
     }
 }
-//#endif
+#endif

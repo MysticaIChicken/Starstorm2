@@ -8,54 +8,27 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using System.Linq;
-using EntityStates;
 namespace SS2.Components
 {
     public class NemCaptainController : NetworkBehaviour, IOnTakeDamageServerReceiver, IOnDamageDealtServerReceiver, IOnKilledOtherServerReceiver
     {
         [Header("Cached Components")]
         public CharacterBody characterBody;
-        public SkillLocator skillLocator;
         public Animator characterAnimator;
-        
 
         [Header("Drone Orders")]
-        public SkillDef[] deck1;
-        public SkillDef[] deck2;
-        public SkillDef[] deck3;
-        private List<SkillDef> ordersStaticList
-        {
-            get
-            {
-                GenericSkill gs = skillLocator.FindSkillByFamilyName("sfNemCapDeckFamily"); //sfNemCaptainDeck bastard
-                string skillName = gs.skillDef.skillName;
-                switch (skillName)
-                {
-                    default :
-                        deckFound = false;
-                        return null;
-                    case "NemCapDeckSimple" :
-                        deckFound = true;
-                        return deck1.ToList();
-                    case "NemCapDeckFull" :
-                        deckFound = true;
-                        return deck2.ToList();
-                    case "NemCapDeckBased" :
-                        deckFound = true;
-                        return deck3.ToList();
-                }
-            }
-        }
-        private Queue<SkillDef> ordersQueue = new Queue<SkillDef>();
-        private SkillStateOverrideData TheSenatorOfAuthority;
-        private bool isOverriding;
+        public SkillFamily deck;
+        public GenericSkill hand1;
+        public GenericSkill hand2;
+        public GenericSkill hand3;
+        public GenericSkill hand4;
+        public SkillDef nullSkill;
+        private List<int> drawnSkillIndicies = new List<int>();
+        private bool initialDeck = true;
 
-        private bool order1Set;
-        private bool order2Set;
-        private bool order3Set;
+        [HideInInspector]
+        public SkillDef cachedPrimary;
 
-        private bool deckFound = false;
         [Header("Stress Values")]
         public float minStress;
         public float maxStress;
@@ -73,13 +46,14 @@ namespace SS2.Components
         public float stressGainedWhenSurrounded;
         public float stressGainedOnItem;
         public float stressOnOutOfOrders;
-        /*public float surroundedThreshold;
+        public float surroundedThreshold;
         [HideInInspector]
         public static float enemyCheckInterval = 0.033333333f;
-        private float enemyCheckStopwatch = 0f;
+        [HideInInspector]
+        private static float enemyCheckStopwatch = 0f;
         private SphereSearch enemySearch;
         private List<HurtBox> hits;
-        public float enemyRadius = 12f;*/
+        public float enemyRadius = 12f;
 
         [Header("Stress UI")]
         [SerializeField]
@@ -102,9 +76,9 @@ namespace SS2.Components
         private OverlayController cardOverlayController;
 
         private NemCaptainSkillIcon ncsi1;
-
         private NemCaptainSkillIcon ncsi2;
         private NemCaptainSkillIcon ncsi3;
+        private NemCaptainSkillIcon ncsi4;
 
         [Header("Drones & Drone Positions")]
         [SerializeField]
@@ -162,14 +136,6 @@ namespace SS2.Components
             get
             {
                 return characterBody && characterBody.HasBuff(SS2Content.Buffs.bdOverstress);
-            }
-        }
-
-        public bool isTotalReset
-        {
-            get
-            {
-                return characterBody && characterBody.HasBuff(SS2Content.Buffs.bdTotalReset);
             }
         }
 
@@ -247,6 +213,12 @@ namespace SS2.Components
             if (droneAimRoot != null)
                 droneAimRootTransform = droneAimRoot.transform;
 
+            //setup enemy search for surrounded condition
+            hits = new List<HurtBox>();
+            enemySearch = new SphereSearch();
+            enemySearch.mask = LayerIndex.entityPrecise.mask;
+            enemySearch.radius = enemyRadius;
+
             //check for a characterbody .. just in case
             if (characterBody != null)
             {
@@ -256,154 +228,87 @@ namespace SS2.Components
                     HealthComponent.onCharacterHealServer += OnCharacterHealServer;
 
                     //setup cards
-                    Debug.Log("Setup cards");
-                    RefreshSkillStateOverrides();
+                    InitializeCards();
                 }
             }
         }
-        /// <summary>
-        /// Obviously, sets the Order Overrides. Can be called repeatedly to refresh, does not leak.
-        /// </summary>
-        /// <param name="handIndex"></param>
-        /// <returns></returns>
-        public void SetOrderOverrides()
-        {
-            //Debug.Log("SetOrderOverrides()");
-            if (isOverriding)
-                UnsetOrderOverrides();
-            RefreshSkillStateOverrides();
-            TheSenatorOfAuthority.OverrideSkills(skillLocator);
-            characterBody.onSkillActivatedAuthority += OnSkillActivatedAuthority;
-            isOverriding = true;
-        }
-        /// <summary>
-        /// Obviously, unsets the Order Overrides. Can be called repeatedly as a failsafe, does not leak.
-        /// </summary>
-        /// <param name="handIndex"></param>
-        /// <returns></returns>
-        public void UnsetOrderOverrides()
-        {
-            //Debug.Log("UnsetOrderOverrides()");
-            if (!isOverriding)
-                return;
-            TheSenatorOfAuthority.ClearOverrides();
-            characterBody.onSkillActivatedAuthority -= OnSkillActivatedAuthority;
-            isOverriding = false;
-        }
-        private void OnSkillActivatedAuthority(GenericSkill skill)
-        {
-            //Debug.Log("OnSkillAuthority()");
-            if (skill.skillDef is OrderSkillDef skillDef && skillDef.autoHandleOrderQueue)
-            {
-                CycleNextOrder(skill);
-            }
-        }
-        private void RefreshSkillStateOverrides()
-        {
-            //Debug.Log("RefreshOrderOverrides()");
-            TheSenatorOfAuthority = new SkillStateOverrideData(characterBody)
-            {
-                primarySkillOverride = TheSenatorOfAuthority?.primarySkillOverride,
-                utilitySkillOverride = TheSenatorOfAuthority?.utilitySkillOverride,
-                specialSkillOverride = TheSenatorOfAuthority?.specialSkillOverride,
 
-                simulateRestockForOverridenSkills = true,
-                overrideFullReloadOnAssign = true
-            };
-
-            if (!order1Set)
+        private void InitializeCards()
+        {
+            //reset on start
+            if (initialDeck)
             {
-                order1Set = true;
-                TheSenatorOfAuthority.primarySkillOverride = GetNextOrder();
-                ncsi1.UpdateSkillRef(TheSenatorOfAuthority.primarySkillOverride);
+                drawnSkillIndicies.Clear();
+                initialDeck = false;
+                Debug.Log("did initial clear");
             }
 
-            if (!order2Set)
+            //give each hand an order
+            hand1.SetSkillOverride(gameObject, GetRandomSkillDefFromDeck(), GenericSkill.SkillOverridePriority.Replacement);
+            if (hand1.skillDef == nullSkill)
+                hand1.UnsetSkillOverride(gameObject, hand1.skillDef, GenericSkill.SkillOverridePriority.Replacement);
+            Debug.Log("gave hand 1 skill : " + hand1.skillDef);
+
+            hand2.SetSkillOverride(gameObject, GetRandomSkillDefFromDeck(), GenericSkill.SkillOverridePriority.Replacement);
+            if (hand2.skillDef == nullSkill)
+                hand2.UnsetSkillOverride(gameObject, hand2.skillDef, GenericSkill.SkillOverridePriority.Replacement);
+            Debug.Log("gave hand 2 skill: " + hand2.skillDef);
+
+            hand3.SetSkillOverride(gameObject, GetRandomSkillDefFromDeck(), GenericSkill.SkillOverridePriority.Replacement);
+            if (hand3.skillDef == nullSkill)
+                hand3.UnsetSkillOverride(gameObject, hand3.skillDef, GenericSkill.SkillOverridePriority.Replacement);
+            Debug.Log("gave hand 3 skill: " + hand3.skillDef);
+
+            hand4.SetSkillOverride(gameObject, GetRandomSkillDefFromDeck(), GenericSkill.SkillOverridePriority.Replacement);
+            if (hand4.skillDef == nullSkill)
+                hand4.UnsetSkillOverride(gameObject, hand4.skillDef, GenericSkill.SkillOverridePriority.Replacement);
+            Debug.Log("gave hand 4 skill: " + hand4.skillDef);
+        }
+
+        public SkillDef GetRandomSkillDefFromDeck()
+        {
+            //check if the entire deck is used
+            if (drawnSkillIndicies.Count == deck.variants.Length)
             {
-                order2Set = true;
-                TheSenatorOfAuthority.utilitySkillOverride = GetNextOrder();
-                ncsi2.UpdateSkillRef(TheSenatorOfAuthority.utilitySkillOverride);
+                Debug.Log("deck fully used; clearing");
+                drawnSkillIndicies.Clear();
             }
 
-            if (!order3Set)
-            {
-                order3Set = true;
-                TheSenatorOfAuthority.specialSkillOverride = GetNextOrder();
-                ncsi3.UpdateSkillRef(TheSenatorOfAuthority.specialSkillOverride);
-            }
-        }
-        private SkillDef GetNextOrder()
-        {
-            //Debug.Log("GetNextOrder()");
-            SkillDef orderDef;
-            if (ordersQueue.TryPeek(out _))
-            {
-                orderDef = ordersQueue.Dequeue();
-            }
-            else
-            {
-                ResetAndShuffleQueue();
-                orderDef = ordersQueue.Dequeue();
-            }
+            Debug.Log("starting to get random skill from deck");
 
-            return orderDef;
-        }
-        private void ResetAndShuffleQueue()
-        {
-            //Debug.Log("ResetShuffle()");
-            ordersQueue.Clear();
-            List<SkillDef> shuffledOrders = ordersStaticList;
-            shuffledOrders.Shuffle();
-            for (int i = 0; i < shuffledOrders.Count; i++)
-                ordersQueue.Enqueue(shuffledOrders[i]);
-        }
-        /// <summary>
-        /// Call the next order to the hand for the specified skillSlot. If called manually within an entityState (In which case the skillDef's autoHandleOrderQueue should be false), call this upon activatorSkillSlot.
-        /// </summary>
-        /// <param name="skill"></param>
-        public void CycleNextOrder(GenericSkill skill)
-        {
-            //Debug.Log("CycleNextOrder()");
-            switch (skill)
+            //loop until an unused order is found
+            int randomVariantIndex;
+            do
             {
-                case GenericSkill _ when skill == skillLocator.primary:
-                    order1Set = false;
-                    break;
-                case GenericSkill _ when skill == skillLocator.utility:
-                    order2Set = false;
-                    break;
-                case GenericSkill _ when skill == skillLocator.special:
-                    order3Set = false;
-                    break;
-                default:
-                    break;
+                randomVariantIndex = Random.Range(0, deck.variants.Length);
             }
-            SetOrderOverrides();
+            while (drawnSkillIndicies.Contains(randomVariantIndex));
+
+            //Debug.Log("randomSkillDef : " + randomSkillDef.name);
+
+            //mark order as used
+            drawnSkillIndicies.Add(randomVariantIndex);
+
+            //Debug.Log("added skill to list : " + deck.variants[randomVariantIndex].skillDef.name);
+
+            return deck.variants[randomVariantIndex].skillDef;
         }
-        /// <summary>
-        /// [deprecated] remove this reference Zebra
-        /// </summary>
-        /// <param name="handIndex"></param>
-        /// <returns></returns>
+
         public void DiscardCardFromHand(int handIndex)
         {
-            /*GenericSkill hand = GetHandByIndex(handIndex);
+            GenericSkill hand = GetHandByIndex(handIndex);
             if (hand != null)
             {
                 //to-do: 'empty' skill
                 Debug.Log("discarded hand");
                 hand.UnsetSkillOverride(gameObject, hand.skillDef, GenericSkill.SkillOverridePriority.Replacement);
                 hand.SetSkillOverride(gameObject, nullSkill, GenericSkill.SkillOverridePriority.Loadout);
-            }*/
+            }
         }
-        /// <summary>
-        /// [deprecated] remove this reference Zebra
-        /// </summary>
-        /// <param name="handIndex"></param>
-        /// <returns></returns>
+
         public void DiscardCardsAndReplace()
         {
-            /*DiscardCardFromHand(1);
+            DiscardCardFromHand(1);
             Debug.Log("discarded hand 1");
             DiscardCardFromHand(2);
             Debug.Log("discarded hand 2");
@@ -413,19 +318,13 @@ namespace SS2.Components
             Debug.Log("discarded hand 4");
 
             //full reset
-            InitializeCards();*/
+            InitializeCards();
         }
 
         //lol
-        /// <summary>
-        /// [deprecated] remove this reference Zebra
-        /// </summary>
-        /// <param name="handIndex"></param>
-        /// <returns></returns>
         private GenericSkill GetHandByIndex(int handIndex)
         {
-            return null;
-            /*switch (handIndex)
+            switch (handIndex)
             {
                 case 1:
                     return hand1;
@@ -437,7 +336,7 @@ namespace SS2.Components
                     return hand4;
                 default:
                     return null;
-            }*/
+            }
         }
 
         private void OnDisable()
@@ -485,31 +384,40 @@ namespace SS2.Components
                 return;
             }
 
-            Transform icon1 = cardOverlayInstanceChildlocator.FindChild("Skill1");
+            var icon1 = cardOverlayInstanceChildlocator.FindChild("Skill1");
             if (icon1 != null)
             {
                 Debug.Log("setting skill 1");
                 ncsi1 = icon1.GetComponent<NemCaptainSkillIcon>();
-                ncsi1.targetSkill = TheSenatorOfAuthority.primarySkillOverride;
-                ncsi1.characterBody = characterBody;
+                ncsi1.ncc = this;
+                ncsi1.targetSkill = hand1;
             }
 
-            Transform icon2 = cardOverlayInstanceChildlocator.FindChild("Skill2");
+            var icon2 = cardOverlayInstanceChildlocator.FindChild("Skill2");
             if (icon2 != null)
             {
                 Debug.Log("setting skill 2");
                 ncsi2 = icon2.GetComponent<NemCaptainSkillIcon>();
-                ncsi2.targetSkill = TheSenatorOfAuthority.utilitySkillOverride;
-                ncsi2.characterBody = characterBody;
+                ncsi2.ncc = this;
+                ncsi2.targetSkill = hand2;
             }
 
-            Transform icon3 = cardOverlayInstanceChildlocator.FindChild("Skill3");
+            var icon3 = cardOverlayInstanceChildlocator.FindChild("Skill3");
             if (icon3 != null)
             {
                 Debug.Log("setting skill 3");
                 ncsi3 = icon3.GetComponent<NemCaptainSkillIcon>();
-                ncsi3.targetSkill = TheSenatorOfAuthority.specialSkillOverride;
-                ncsi3.characterBody = characterBody;
+                ncsi3.ncc = this;
+                ncsi3.targetSkill = hand3;
+            }
+
+            var icon4 = cardOverlayInstanceChildlocator.FindChild("Skill4");
+            if (icon4 != null)
+            {
+                Debug.Log("setting skill 4");
+                ncsi4 = icon4.GetComponent<NemCaptainSkillIcon>();
+                ncsi4.ncc = this;
+                ncsi4.targetSkill = hand4;
             }
         }
 
@@ -518,16 +426,85 @@ namespace SS2.Components
             fillUiList.Remove(instance.GetComponent<ImageFillController>());
         }
 
+        private void CheckRefresh(GenericSkill gs)
+        {
+            if (gs.stock > 0)
+                gs.SetSkillOverride(gameObject, GetRandomSkillDefFromDeck(), GenericSkill.SkillOverridePriority.Replacement);
+
+        }
+
         private void FixedUpdate()
         {
-            if (!deckFound)
-            {
-                RefreshSkillStateOverrides();
-            }
             float num;
 
             num = characterBody.outOfCombat ? stressPerSecondOutOfCombat : stressPerSecondInCombat;
 
+            if (NetworkServer.active)
+            {
+                enemyCheckStopwatch += Time.fixedDeltaTime;
+                if (enemyCheckStopwatch >= enemyCheckInterval)
+                {
+                    enemyCheckStopwatch -= enemyCheckInterval;
+
+                    //set enemy count to 0
+                    float enemyCount = 0f;
+
+                    //spheresearch time
+                    hits.Clear();
+                    enemySearch.ClearCandidates();
+                    enemySearch.origin = characterBody.corePosition;
+                    enemySearch.RefreshCandidates();
+                    enemySearch.FilterCandidatesByDistinctHurtBoxEntities();
+                    enemySearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(characterBody.teamComponent.teamIndex));
+                    enemySearch.GetHurtBoxes(hits);
+                    if (hits.Count > 5)
+                    {
+                        //check that everything we found is actually an enemy to some degree
+                        foreach (HurtBox h in hits)
+                        {
+                            HealthComponent hp = h.healthComponent;
+                            if (hp)
+                            {
+                                CharacterBody body = hp?.body;
+                                if (body && body != characterBody && !body.bodyFlags.HasFlag(CharacterBody.BodyFlags.Masterless))
+                                {
+                                    enemyCount++;
+
+                                    //large enemies and elites are scarier
+                                    if (body.hullClassification == HullClassification.Golem || body.hullClassification == HullClassification.BeetleQueen || body.isElite)
+                                    {
+                                        enemyCount++;
+                                        
+                                        //bosses are even scarier
+                                        if (body.isChampion || body.isBoss)
+                                        {
+                                            enemyCount++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        //if over surrounded threshold, 
+                        if (enemyCount > surroundedThreshold)
+                        {
+                            num += stressGainedWhenSurrounded;
+                        }
+                    }
+                }
+            }
+
+            if (hand1.skillDef == nullSkill)
+                CheckRefresh(hand1);
+
+            if (hand2.skillDef == nullSkill)
+                CheckRefresh(hand2);
+
+            if (hand3.skillDef == nullSkill)
+                CheckRefresh(hand3);
+
+            if (hand4.skillDef == nullSkill)
+                CheckRefresh(hand4);
 
             if (characterBody.HasBuff(SS2Content.Buffs.bdNemCapManaRegen))
                 num += stressPerSecondWhileRegenBuff;
@@ -553,6 +530,15 @@ namespace SS2.Components
                 {
                     characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 0);
                 }
+
+                /*if (hand1.skillDef == nullSkill && hand2.skillDef == nullSkill && hand3.skillDef == nullSkill && hand4.skillDef == nullSkill)
+                {
+                    InitializeCards();
+                    if (!isOverstressed)
+                    {
+                        AddStress(stressOnOutOfOrders);
+                    }
+                }*/
             }
         }
 
@@ -564,10 +550,8 @@ namespace SS2.Components
             }
             if (stressOverlayInstanceChildlocator)
             {
-                var wazzok = stressOverlayInstanceChildlocator.FindChild("StressThreshold");
-                if (wazzok) //dwarven engineering at its finest
-                    wazzok.rotation = Quaternion.Euler(0f, 0f, Mathf.InverseLerp(0f, maxStress, stress) * -360f);
-                //overlayInstanceChildlocator.FindChild("MinStressThreshold");
+                stressOverlayInstanceChildlocator.FindChild("StressThreshold").rotation = Quaternion.Euler(0f, 0f, Mathf.InverseLerp(0f, maxStress, stress) * -360f);
+                //overlayInstanceChildlocator.FindChild("MinStressShreshold");
             }
             if (uiStressText)
             {
@@ -671,22 +655,6 @@ namespace SS2.Components
             if ((num & 1) != 0)
             {
                 OnStressModified(reader.ReadSingle());
-            }
-        }
-    }
-
-    public static class ListExtension
-    {
-        internal static void Shuffle<T>(this List<T> list)
-        {
-            int count = list.Count;
-            while (count > 1)
-            {
-                int swapWith = UnityEngine.Random.RandomRange(0, count);
-                count--;
-                T value = list[count];
-                list[count] = list[swapWith];
-                list[swapWith] = value;
             }
         }
     }
