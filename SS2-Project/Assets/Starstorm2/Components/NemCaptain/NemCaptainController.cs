@@ -196,7 +196,7 @@ namespace SS2.Components
             [param: In]
             set
             {
-                if (NetworkServer.localClientActive && syncVarHookGuard)
+                if (NetworkServer.localClientActive && !syncVarHookGuard)
                 {
                     syncVarHookGuard = true;
                     OnStressModified(value);
