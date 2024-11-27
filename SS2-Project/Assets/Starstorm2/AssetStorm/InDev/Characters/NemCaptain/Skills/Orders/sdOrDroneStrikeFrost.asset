@@ -41,6 +41,6 @@ MonoBehaviour:
   autoHandleLuminousShot: 1
   hideStockCount: 0
   stressValue: 5
-  canCastIfOverstressed: 1
-  canCastIfWillOverstress: 0
+  canCastIfOverstressed: 0
+  canCastIfWillOverstress: 1
   autoHandleOrderQueue: 1

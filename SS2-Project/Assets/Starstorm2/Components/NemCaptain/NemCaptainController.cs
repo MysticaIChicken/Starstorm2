@@ -196,7 +196,7 @@ namespace SS2.Components
             [param: In]
             set
             {
-                if (NetworkServer.localClientActive && !syncVarHookGuard)
+                if (NetworkServer.localClientActive && !syncVarHookGuard) //lol
                 {
                     syncVarHookGuard = true;
                     OnStressModified(value);
@@ -228,7 +228,7 @@ namespace SS2.Components
 
             Network_stress = newStress;
 
-            if (newStress >= maxStress && !isOverstressed)
+            if (newStress >= maxStress && !isOverstressed) //I kinda wanna switch the overstress mechanic to an entitystate ala void fiend ngl because I'm not a fan of this
             {
                 //characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 1);
                 characterBody.AddBuff(SS2Content.Buffs.bdOverstress.buffIndex);
