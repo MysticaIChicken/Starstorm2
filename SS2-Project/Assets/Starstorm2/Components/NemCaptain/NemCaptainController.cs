@@ -593,7 +593,12 @@ namespace SS2.Components
         {
             if (healthComponent == bodyHealthComponent)
             {
-                float num = amount / bodyHealthComponent.fullCombinedHealth;
+                float lostHealth = bodyHealthComponent.fullCombinedHealth - (bodyHealthComponent.health + bodyHealthComponent.shield);
+                if ( lostHealth <= 0 )
+                {
+                    return;
+                }
+                float num = Mathf.Min(amount, lostHealth) / bodyHealthComponent.fullCombinedHealth;
                 AddStress(num * stressGainedOnHeal);
             }
         }
