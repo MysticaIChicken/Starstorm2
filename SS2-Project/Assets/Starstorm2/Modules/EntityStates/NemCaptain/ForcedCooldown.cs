@@ -2,7 +2,7 @@
 {
     public class ForcedCooldown : BaseState
     {
-        public static float baseDuration = 0.5f;
+        public static float baseDuration = 1.0f;
         private float duration;
 
         //maybe play an animation here
@@ -16,7 +16,7 @@
         public override void FixedUpdate()
         {
             base.FixedUpdate();
-            if (fixedAge >= duration)
+            if (fixedAge >= duration && isAuthority)
                 outer.SetNextStateToMain();
         }
 

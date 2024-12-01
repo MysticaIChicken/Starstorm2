@@ -4650,7 +4650,8 @@ MonoBehaviour:
   stressPerSecondOutOfCombat: -3
   stressPerSecondWhileOverstressed: -12.5
   stressPerSecondWhileRegenBuff: -4
-  stressGainedOnFullDamage: 55
+  stressPerSecondWhileBarriered: -3
+  stressGainedOnFullDamage: 80
   stressGainedOnOSP: 0
   stressGainedOnHeal: -40
   stressGainedOnCrit: -0.2
@@ -4660,8 +4661,6 @@ MonoBehaviour:
   stressGainedWhenSurrounded: 2.5
   stressGainedOnItem: -1
   stressOnOutOfOrders: 35
-  surroundedThreshold: 8
-  enemyRadius: 13
   stressOverlayPrefab: {fileID: 1894802512682313, guid: 7aa69281e0edca147beeff3020ab1703,
     type: 3}
   stressOverlayChildLocatorEntry: CrosshairExtras

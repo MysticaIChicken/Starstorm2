@@ -69,6 +69,7 @@ namespace SS2.Components
         public float stressPerSecondOutOfCombat;
         public float stressPerSecondWhileOverstressed;
         public float stressPerSecondWhileRegenBuff;
+        public float stressPerSecondWhileBarriered;
         public float stressGainedOnFullDamage;
         public float stressGainedOnOSP;
         public float stressGainedOnHeal;
@@ -515,7 +516,10 @@ namespace SS2.Components
             {
                 Debug.Log("setting skill 1");
                 ncsi1 = icon1.GetComponent<NemCaptainSkillIcon>();
-                ncsi1.targetSkill = TheSenatorOfAuthority.primarySkillOverride;
+                if (ncsi1.targetSkill == null)
+                {
+                    ncsi1.targetSkill = TheSenatorOfAuthority.primarySkillOverride;
+                }
                 ncsi1.characterBody = characterBody;
             }
 
@@ -524,7 +528,10 @@ namespace SS2.Components
             {
                 Debug.Log("setting skill 2");
                 ncsi2 = icon2.GetComponent<NemCaptainSkillIcon>();
-                ncsi2.targetSkill = TheSenatorOfAuthority.utilitySkillOverride;
+                if (ncsi2.targetSkill == null)
+                {
+                    ncsi2.targetSkill = TheSenatorOfAuthority.utilitySkillOverride;
+                }
                 ncsi2.characterBody = characterBody;
             }
 
@@ -533,7 +540,10 @@ namespace SS2.Components
             {
                 Debug.Log("setting skill 3");
                 ncsi3 = icon3.GetComponent<NemCaptainSkillIcon>();
-                ncsi3.targetSkill = TheSenatorOfAuthority.specialSkillOverride;
+                if (ncsi3.targetSkill == null)
+                {
+                    ncsi3.targetSkill = TheSenatorOfAuthority.specialSkillOverride;
+                }
                 ncsi3.characterBody = characterBody;
             }
         }
@@ -557,8 +567,13 @@ namespace SS2.Components
             if (characterBody.HasBuff(SS2Content.Buffs.bdNemCapManaRegen))
                 num += stressPerSecondWhileRegenBuff;
 
+            if (bodyHealthComponent.barrier > 0)
+                num += stressPerSecondWhileBarriered;
+
             if (isOverstressed)
                 num = stressPerSecondWhileOverstressed;
+
+            
 
             //add final stress per second amount; no stress if invincible
             if (NetworkServer.active && !(characterBody.HasBuff(RoR2Content.Buffs.HiddenInvincibility) || characterBody.HasBuff(RoR2Content.Buffs.Immune)))

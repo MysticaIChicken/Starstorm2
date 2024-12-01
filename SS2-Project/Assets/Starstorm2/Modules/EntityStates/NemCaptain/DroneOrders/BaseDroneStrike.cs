@@ -13,23 +13,14 @@ namespace EntityStates.NemCaptain.Weapon
         [SerializeField]
         public float radius;
         [SerializeField]
-        public GameObject explosionPrefab;
-        [SerializeField]
-        public GameObject dronePrefab;
-        [SerializeField]
-        public float minDur = 0.2f;
+        public float minDur = 0.1f;
         [SerializeField]
         public GameObject areaIndicator;
         [SerializeField]
         public float maxDistance = 256f;
 
-        [Header("gross and hacky")]
-        //not proud of this
-        [SerializeField]
-        public bool isFrost;
-        [SerializeField]
-        public bool isShock;
         private GameObject areaIndicatorInstance;
+
         public override void OnEnter()
         {
             base.OnEnter();
@@ -42,76 +33,26 @@ namespace EntityStates.NemCaptain.Weapon
                 areaIndicatorInstance.transform.localScale = new Vector3(radius, radius, radius);
             }
         }
+
         public override void OnExit()
         {
             Util.PlaySound(Captain.Weapon.CallAirstrike1.fireAirstrikeSoundString, gameObject);
 
-            if (explosionPrefab != null)
-                Explode();
-
-            if (dronePrefab != null && isAuthority)
-                PlaceDrone();
+            OnOrderEffect();
 
             characterBody.hideCrosshair = false;
-
-            if (skillLocator.primary.stock < 1)
-                skillLocator.primary.UnsetSkillOverride(gameObject, activatorSkillSlot.skillDef, GenericSkill.SkillOverridePriority.Replacement);
 
             if (areaIndicatorInstance != null)
                 Destroy(areaIndicatorInstance.gameObject);
             base.OnExit();
         }
 
-        public void PlaceDrone()
-        {
-            Ray aimRay = GetAimRay();
-            RaycastHit raycastHit;
-            Physics.Raycast(aimRay, out raycastHit, maxDistance, LayerIndex.CommonMasks.bullet);
-
-            GameObject droneObject = Object.Instantiate(dronePrefab, raycastHit.point, Quaternion.identity);
-            droneObject.GetComponent<TeamFilter>().teamIndex = teamComponent.teamIndex;
-            droneObject.GetComponent<GenericOwnership>().ownerObject = gameObject;
-
-            NetworkServer.Spawn(gameObject);
-        }
-
-        public void Explode()
-        {
-            Debug.Log("exploding");
-            Ray aimRay = GetAimRay();
-            RaycastHit raycastHit;
-            Physics.Raycast(aimRay, out raycastHit, maxDistance, LayerIndex.CommonMasks.bullet);
-
-            bool crit = RollCrit();
-            DamageType damageType = DamageType.Stun1s;
-            if (isFrost)
-                damageType = DamageType.Freeze2s;
-            if (isShock)
-                damageType = DamageType.Shock5s;
-
-            BlastAttack blast = new BlastAttack()
-            {
-                radius = radius,
-                procCoefficient = procCoefficient,
-                position = raycastHit.point,
-                attacker = gameObject,
-                teamIndex = teamComponent.teamIndex,
-                crit = crit,
-                baseDamage = characterBody.damage * dmgCoefficient,
-                damageColorIndex = DamageColorIndex.Default,
-                falloffModel = BlastAttack.FalloffModel.None,
-                attackerFiltering = AttackerFiltering.NeverHitSelf,
-                damageType = damageType
-            };
-            blast.Fire();
-
-            EffectManager.SimpleEffect(explosionPrefab, raycastHit.point, Quaternion.identity, true);
-        }
+        public virtual void OnOrderEffect() { }
 
         public override void FixedUpdate()
         {
             base.FixedUpdate();
-            characterBody.SetAimTimer(4f);
+            characterBody.SetAimTimer(2f);
 
             if (isAuthority)
                 FixedUpdateAuthority();
@@ -121,7 +62,7 @@ namespace EntityStates.NemCaptain.Weapon
         {
             if (!IsKeyDownAuthority() && fixedAge > minDur)
             {
-                outer.SetNextStateToMain();
+                outer.SetNextState(new ForcedCooldown());
             }
         }
 

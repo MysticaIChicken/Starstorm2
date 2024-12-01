@@ -9,22 +9,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d95381666eaf794fb82249aa651f89c, type: 3}
-  m_Name: sdOrReduce
+  m_Script: {fileID: 11500000, guid: 60ea9198a83500b4f8c0ac1ceebc3ea4, type: 3}
+  m_Name: sdNemCaptainPrimary2
   m_EditorClassIdentifier: 
-  skillName: NemCapOrderReduction
-  skillNameToken: SS2_NEMCAPTAIN_ORDERREDUCE_NAME
-  skillDescriptionToken: SS2_NEMCAPTAIN_ORDERREDUCE_DESCRIPTION
+  skillName: NemCapPistol
+  skillNameToken: SS2_NEMCAPTAIN_PRIMARY_NAME
+  skillDescriptionToken: SS2_NEMCAPTAIN_PRIMARY_DESCRIPTION
   keywordTokens: []
-  icon: {fileID: 21300000, guid: 3bb727789ba789849afbfbbba4675d46, type: 3}
+  icon: {fileID: 21300000, guid: bd0db77ae09f8394bb909adc55132308, type: 3}
   activationStateMachineName: Weapon
   activationState:
-    _typeName: EntityStates.NemCaptain.Weapon.GiveManaReductionBuff, Starstorm2,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  interruptPriority: 2
-  baseRechargeInterval: 0
-  baseMaxStock: 1
-  rechargeStock: 1
+    _typeName: EntityStates.NemCaptain.MachinePistol, Starstorm2, Version=1.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  interruptPriority: 1
+  baseRechargeInterval: 3
+  baseMaxStock: 20
+  rechargeStock: 99
   requiredStock: 1
   stockToConsume: 1
   attackSpeedBuffsRestockSpeed: 0
@@ -35,12 +35,8 @@ MonoBehaviour:
   beginSkillCooldownOnSkillEnd: 0
   cancelSprintingOnActivation: 1
   forceSprintDuringState: 0
-  canceledFromSprinting: 1
+  canceledFromSprinting: 0
   isCombatSkill: 1
-  mustKeyPress: 1
+  mustKeyPress: 0
   autoHandleLuminousShot: 1
   hideStockCount: 0
-  stressValue: 25
-  canCastIfOverstressed: 0
-  canCastIfWillOverstress: 0
-  autoHandleOrderQueue: 1
