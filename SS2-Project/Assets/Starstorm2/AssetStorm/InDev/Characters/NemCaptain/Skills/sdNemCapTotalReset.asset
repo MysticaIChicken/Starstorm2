@@ -9,24 +9,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9a2adbf9d235e542a8ee6fba5f7f347, type: 3}
-  m_Name: sdNemCapStressableOrders
+  m_Script: {fileID: 1391837873, guid: 951ce57ad999ac1f040a4dceb5f8b763, type: 3}
+  m_Name: sdNemCapTotalReset
   m_EditorClassIdentifier: 
-  skillName: NemCapSetupDroneOrders
-  skillNameToken: SS2_NEMCAPTAIN_ORDERS_NAME
-  skillDescriptionToken: SS2_NEMCAPTAIN_ORDERS_DESCRIPTION
-  keywordTokens: []
-  icon: {fileID: 21300000, guid: 0c1e0b0817d88de4397951d01139ce78, type: 3}
-  activationStateMachineName: Skillswap
+  skillName: NemCapTotalReset
+  skillNameToken: SS2_NEMCAPTAIN_TOTALRESET_NAME
+  skillDescriptionToken: SS2_NEMCAPTAIN_TOTALRESET_DESCRIPTION
+  keywordTokens:
+  - KEYWORD_STUNNING
+  icon: {fileID: 21300000, guid: 1c39903cb2a83af4ba31b22fe341fcf7, type: 3}
+  activationStateMachineName: Weapon
   activationState:
-    _typeName: EntityStates.NemCaptain.Weapon.SetupDroneOrders, Starstorm2, Version=1.0.0.0,
-      Culture=neutral, PublicKeyToken=null
+    _typeName: EntityStates.NemCaptain.TotalReset, Starstorm2, Version=1.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   interruptPriority: 1
-  baseRechargeInterval: 0
+  baseRechargeInterval: 20
   baseMaxStock: 1
   rechargeStock: 1
   requiredStock: 1
-  stockToConsume: 0
+  stockToConsume: 1
   attackSpeedBuffsRestockSpeed: 0
   attackSpeedBuffsRestockSpeed_Multiplier: 1
   resetCooldownTimerOnUse: 0
@@ -35,9 +36,8 @@ MonoBehaviour:
   beginSkillCooldownOnSkillEnd: 0
   cancelSprintingOnActivation: 1
   forceSprintDuringState: 0
-  canceledFromSprinting: 1
-  isCombatSkill: 1
+  canceledFromSprinting: 0
+  isCombatSkill: 0
   mustKeyPress: 1
   autoHandleLuminousShot: 1
   hideStockCount: 0
-  canCastIfOverstressed: 0

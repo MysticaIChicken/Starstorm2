@@ -4630,10 +4630,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 10732a02bfd08b84bad799fb7a4ea36c, type: 2}
   - {fileID: 11400000, guid: 7fe4d152c38175f4f9f8870f2b318017, type: 2}
   - {fileID: 11400000, guid: 30daad84d69abc1499a1ed1f9dc9570e, type: 2}
-  - {fileID: 11400000, guid: 30daad84d69abc1499a1ed1f9dc9570e, type: 2}
-  - {fileID: 11400000, guid: 1a0514b65377d414ab8b0e8fed1f19d2, type: 2}
   - {fileID: 11400000, guid: 9287d9f3a2858dc428b6ed5a9b26bb2d, type: 2}
   - {fileID: 11400000, guid: 91d15b19306c5b047b3ce0c7deb843f4, type: 2}
+  - {fileID: 11400000, guid: 37ddbb30aa1667342bd8a8e6f858a2d0, type: 2}
   deck2:
   - {fileID: 11400000, guid: b369e22c860ade5479e7d5abd4dd40d2, type: 2}
   - {fileID: 11400000, guid: 30daad84d69abc1499a1ed1f9dc9570e, type: 2}
@@ -4646,11 +4645,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7fe4d152c38175f4f9f8870f2b318017, type: 2}
   minStress: 0
   maxStress: 100
+  bonusMaxStressPerStack: 10
   stressPerSecondInCombat: 0
   stressPerSecondOutOfCombat: -3
   stressPerSecondWhileOverstressed: -12.5
+  stressPerSecondWhileTotalReset: -12.5
   stressPerSecondWhileRegenBuff: -4
-  stressPerSecondWhileBarriered: -3
+  stressPerSecondWhileBarriered: -2
   stressGainedOnFullDamage: 80
   stressGainedOnOSP: 0
   stressGainedOnHeal: -40
@@ -4661,6 +4662,7 @@ MonoBehaviour:
   stressGainedWhenSurrounded: 2.5
   stressGainedOnItem: -1
   stressOnOutOfOrders: 35
+  bonusMaxStressStacks: 0
   stressOverlayPrefab: {fileID: 1894802512682313, guid: 7aa69281e0edca147beeff3020ab1703,
     type: 3}
   stressOverlayChildLocatorEntry: CrosshairExtras

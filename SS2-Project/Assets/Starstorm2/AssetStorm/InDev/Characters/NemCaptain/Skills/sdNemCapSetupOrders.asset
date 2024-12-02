@@ -9,27 +9,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d95381666eaf794fb82249aa651f89c, type: 3}
-  m_Name: sdOrDroneStrikeFrost
+  m_Script: {fileID: 11500000, guid: b303f4a34419c4743bfb79a9eaf11026, type: 3}
+  m_Name: sdNemCapSetupOrders
   m_EditorClassIdentifier: 
-  skillName: NemCapDroneStrikeFrostFire
-  skillNameToken: SS2_NEMCAPTAIN_ORDERSTRIKEFROST_NAME
-  skillDescriptionToken: SS2_NEMCAPTAIN_ORDERSTRIKEFROST_DESCRIPTION
+  skillName: NemCapSetupDroneOrders
+  skillNameToken: SS2_NEMCAPTAIN_ORDERS_NAME
+  skillDescriptionToken: SS2_NEMCAPTAIN_ORDERS_DESCRIPTION
   keywordTokens: []
-  icon: {fileID: 21300000, guid: 1b403ae5499f7e9479a6a97c47ce628d, type: 3}
-  activationStateMachineName: Weapon
+  icon: {fileID: 21300000, guid: 0c1e0b0817d88de4397951d01139ce78, type: 3}
+  activationStateMachineName: Skillswap
   activationState:
-    _typeName: EntityStates.NemCaptain.Weapon.DroneStrikeFrost, Starstorm2, Version=1.0.0.0,
+    _typeName: EntityStates.NemCaptain.Weapon.SetupDroneOrders, Starstorm2, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  interruptPriority: 2
+  interruptPriority: 1
   baseRechargeInterval: 0
   baseMaxStock: 1
-  rechargeStock: 0
+  rechargeStock: 1
   requiredStock: 1
   stockToConsume: 0
   attackSpeedBuffsRestockSpeed: 0
   attackSpeedBuffsRestockSpeed_Multiplier: 1
-  resetCooldownTimerOnUse: 1
+  resetCooldownTimerOnUse: 0
   fullRestockOnAssign: 1
   dontAllowPastMaxStocks: 0
   beginSkillCooldownOnSkillEnd: 0
@@ -39,9 +39,4 @@ MonoBehaviour:
   isCombatSkill: 1
   mustKeyPress: 1
   autoHandleLuminousShot: 1
-  hideStockCount: 0
-  stressValue: 15
-  canCastIfOverstressed: 0
-  canCastIfWillOverstress: 1
-  autoHandleAddStress: 0
-  autoHandleOrderQueue: 0
+  hideStockCount: 1

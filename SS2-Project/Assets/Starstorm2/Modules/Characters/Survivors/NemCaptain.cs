@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Runtime.CompilerServices;
 using UnityEngine.AddressableAssets;
 using MSU;
+using SS2;
 using System.Collections;
 using RoR2.ContentManagement;
 using R2API;
@@ -14,15 +15,27 @@ namespace SS2.Survivors
         public override SS2AssetRequest<SurvivorAssetCollection> AssetRequest => SS2Assets.LoadAssetAsync<SurvivorAssetCollection>("acNemCaptain", SS2Bundle.Indev);
 
         public static BuffDef _buffDefOverstress;
+        public static BuffDef _buffDefTotalReset;
 
         public override void Initialize()
         {
             _buffDefOverstress = AssetCollection.FindAsset<BuffDef>("bdOverstress");
+            _buffDefTotalReset = AssetCollection.FindAsset<BuffDef>("bdTotalReset");
             ModifyPrefab();
             R2API.RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+            On.RoR2.GenericSkill.RecalculateMaxStock += (orig, self) =>
+            {
+                Debug.Log("test");
+                if (self.skillDef != null && self.skillDef is OrderSkillDef orderSkillDef)
+                {
+                    self.maxStock = (int)orderSkillDef.stressValue;
+                }
+                else
+                    orig(self);
+            };
         }
 
-        public sealed class OvertressBuffBehavior : BaseBuffBehaviour, IBodyStatArgModifier
+        public sealed class OverstressBuffBehavior : BaseBuffBehaviour, IBodyStatArgModifier
         {
             [BuffDefAssociation]
             private static BuffDef GetBuffDef() => _buffDefOverstress;
@@ -33,6 +46,19 @@ namespace SS2.Survivors
                     args.armorAdd -= 20f;
                     args.moveSpeedReductionMultAdd += 0.3f;
                     args.damageMultAdd -= 0.5f;
+                }
+            }
+        }
+
+        public sealed class TotalResetBuffBehavior : BaseBuffBehaviour, IBodyStatArgModifier
+        {
+            [BuffDefAssociation]
+            private static BuffDef GetBuffDef() => _buffDefTotalReset;
+            public void ModifyStatArguments(RecalculateStatsAPI.StatHookEventArgs args)
+            {
+                if (hasAnyStacks)
+                {
+                    args.moveSpeedMultAdd += 0.25f;
                 }
             }
         }

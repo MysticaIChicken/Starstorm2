@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d95381666eaf794fb82249aa651f89c, type: 3}
-  m_Name: sdOrDroneStrikeFrost
+  m_Name: sdOrDroneBarrier
   m_EditorClassIdentifier: 
-  skillName: NemCapDroneStrikeFrostFire
-  skillNameToken: SS2_NEMCAPTAIN_ORDERSTRIKEFROST_NAME
-  skillDescriptionToken: SS2_NEMCAPTAIN_ORDERSTRIKEFROST_DESCRIPTION
+  skillName: NemCapDroneBarrierFire
+  skillNameToken: SS2_NEMCAPTAIN_ORDERBARRIER_NAME
+  skillDescriptionToken: SS2_NEMCAPTAIN_ORDERBARRIER_DESCRIPTION
   keywordTokens: []
-  icon: {fileID: 21300000, guid: 1b403ae5499f7e9479a6a97c47ce628d, type: 3}
+  icon: {fileID: 21300000, guid: bae0d048b7ae0854caaabe4576f9d1d0, type: 3}
   activationStateMachineName: Weapon
   activationState:
-    _typeName: EntityStates.NemCaptain.Weapon.DroneStrikeFrost, Starstorm2, Version=1.0.0.0,
+    _typeName: EntityStates.NemCaptain.Weapon.DeployBarrierDrone, Starstorm2, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   interruptPriority: 2
   baseRechargeInterval: 0
@@ -40,8 +40,8 @@ MonoBehaviour:
   mustKeyPress: 1
   autoHandleLuminousShot: 1
   hideStockCount: 0
-  stressValue: 15
+  stressValue: 20
   canCastIfOverstressed: 0
   canCastIfWillOverstress: 1
-  autoHandleAddStress: 0
-  autoHandleOrderQueue: 0
+  autoHandleAddStress: 1
+  autoHandleOrderQueue: 1

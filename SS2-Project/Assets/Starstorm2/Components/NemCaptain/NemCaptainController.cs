@@ -8,6 +8,8 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using HG;
+using TMPro;
 using System.Linq;
 using EntityStates;
 namespace SS2.Components
@@ -65,9 +67,11 @@ namespace SS2.Components
         [Header("Stress Values")]
         public float minStress;
         public float maxStress;
+        public float bonusMaxStressPerStack;
         public float stressPerSecondInCombat;
         public float stressPerSecondOutOfCombat;
         public float stressPerSecondWhileOverstressed;
+        public float stressPerSecondWhileTotalReset;
         public float stressPerSecondWhileRegenBuff;
         public float stressPerSecondWhileBarriered;
         public float stressGainedOnFullDamage;
@@ -80,6 +84,9 @@ namespace SS2.Components
         public float stressGainedWhenSurrounded;
         public float stressGainedOnItem;
         public float stressOnOutOfOrders;
+
+        [HideInInspector]
+        public int bonusMaxStressStacks;
         /*public float surroundedThreshold;
         [HideInInspector]
         public static float enemyCheckInterval = 0.033333333f;
@@ -97,7 +104,7 @@ namespace SS2.Components
         private ChildLocator stressOverlayInstanceChildlocator;
         private OverlayController stressOverlayController;
         private List<ImageFillController> fillUiList = new List<ImageFillController>();
-        private Text uiStressText;
+        private TextMeshProUGUI uiStressText;
 
         [Header("Hand UI")]
         [SerializeField]
@@ -140,11 +147,23 @@ namespace SS2.Components
             }
         }
 
+        public float totalMaxStress
+        {
+            get
+            {
+                return maxStress + (bonusMaxStressPerStack * bonusMaxStressStacks);
+            }
+        }
+
         public float stressFraction
         {
             get
             {
-                return stress / maxStress;
+                if (isTotalReset)
+                    return 0.0f;
+                if (isOverstressed)
+                    return 1.0f;
+                return stress / totalMaxStress;
             }
         }
 
@@ -160,7 +179,7 @@ namespace SS2.Components
         {
             get
             {
-                return stress >= maxStress;
+                return stress >= totalMaxStress;
             }
         }
 
@@ -207,6 +226,36 @@ namespace SS2.Components
             }
         }
 
+        private int freeOrders;
+        private bool hasFreeOrders
+        {
+            get
+            {
+                if (freeOrders <= 0)
+                    return false;
+                freeOrders--;
+                return true;
+            }
+            set
+            {
+                if (value)
+                    freeOrders = 2;
+                else
+                    freeOrders = 0;
+            }
+        }
+
+        public void AddOrderStress(float amount)
+        {
+            if (hasFreeOrders)
+            {
+                //lol
+            }
+            else
+            {
+                AddStress(amount);
+            }
+        }
         [Server]
         public void AddStress(float amount)
         {
@@ -216,11 +265,15 @@ namespace SS2.Components
                 return;
             }
 
+            if (isTotalReset && amount > 0)
+            {
+                amount = 0;
+            }
             //halve mana used if has reduction buff
             if (characterBody.HasBuff(SS2Content.Buffs.bdNemCapManaReduction) && amount > 0)
                 amount /= 2;
 
-            Network_stress = Mathf.Clamp(stress + amount, minStress, maxStress);
+            Network_stress = Mathf.Clamp(stress + amount, minStress, totalMaxStress);
         }
 
         private void OnStressModified(float newStress)
@@ -229,7 +282,7 @@ namespace SS2.Components
 
             Network_stress = newStress;
 
-            if (newStress >= maxStress && !isOverstressed) //I kinda wanna switch the overstress mechanic to an entitystate ala void fiend ngl because I'm not a fan of this
+            if (newStress >= totalMaxStress && !isOverstressed) //I kinda wanna switch the overstress mechanic to an entitystatemachine ala void fiend/herald ngl because I'm not a fan of this. Buffs aren't fully networked and shouldn't be the deciding factor for logic outside of stats
             {
                 //characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 1);
                 characterBody.AddBuff(SS2Content.Buffs.bdOverstress.buffIndex);
@@ -341,21 +394,24 @@ namespace SS2.Components
             {
                 order1Set = true;
                 TheSenatorOfAuthority.primarySkillOverride = GetNextOrder();
-                ncsi1.UpdateSkillRef(TheSenatorOfAuthority.primarySkillOverride);
+                if (ncsi1)
+                    ncsi1.UpdateSkillRef(TheSenatorOfAuthority.primarySkillOverride);
             }
 
             if (!order2Set)
             {
                 order2Set = true;
                 TheSenatorOfAuthority.utilitySkillOverride = GetNextOrder();
-                ncsi2.UpdateSkillRef(TheSenatorOfAuthority.utilitySkillOverride);
+                if (ncsi2)
+                    ncsi2.UpdateSkillRef(TheSenatorOfAuthority.utilitySkillOverride);
             }
 
             if (!order3Set)
             {
                 order3Set = true;
                 TheSenatorOfAuthority.specialSkillOverride = GetNextOrder();
-                ncsi3.UpdateSkillRef(TheSenatorOfAuthority.specialSkillOverride);
+                if (ncsi3)
+                    ncsi3.UpdateSkillRef(TheSenatorOfAuthority.specialSkillOverride);
             }
         }
         private SkillDef GetNextOrder()
@@ -404,6 +460,17 @@ namespace SS2.Components
                 default:
                     break;
             }
+            SetOrderOverrides();
+        }
+        /// <summary>
+        /// Call the next order to all slots in hand. In expected order of Primary, Utility, then Special.
+        /// </summary>
+        /// <param name="skill"></param>
+        public void CycleAllOrders()
+        {
+            order1Set = false;
+            order2Set = false;
+            order3Set = false;
             SetOrderOverrides();
         }
         /// <summary>
@@ -488,7 +555,16 @@ namespace SS2.Components
         private void OnStressOverlayInstanceAdded(OverlayController controller, GameObject instance)
         {
             fillUiList.Add(instance.GetComponent<ImageFillController>());
-            uiStressText = instance.GetComponent<Text>();
+            uiStressText = instance.GetComponentInChildren<TextMeshProUGUI>();
+            if (uiStressText != null)
+            {
+                Debug.Log("uiStressText found!");
+            }
+            else
+            {
+                Debug.Log("uiStressText not found FUCK");
+            }
+                
             //uiStressText.font = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidSurvivor/animVoidSurvivorCorruptionUI.controller").WaitForCompletion().GetComponent<TextMeshProUGUI>().font;
             //uiStressText.fontSharedMaterial = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidSurvivor/animVoidSurvivorCorruptionUI.controller").WaitForCompletion().GetComponent<TextMeshProUGUI>().fontSharedMaterial;
             //uiStressText.fontMaterial = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidSurvivor/animVoidSurvivorCorruptionUI.controller").WaitForCompletion().GetComponent<TextMeshProUGUI>().fontMaterial;
@@ -573,6 +649,9 @@ namespace SS2.Components
             if (isOverstressed)
                 num = stressPerSecondWhileOverstressed;
 
+            if (isTotalReset)
+                num = stressPerSecondWhileTotalReset;
+
             
 
             //add final stress per second amount; no stress if invincible
@@ -586,21 +665,22 @@ namespace SS2.Components
         {
             foreach (ImageFillController imageFillController in fillUiList)
             {
-                imageFillController.SetTValue(stress / maxStress);
+                imageFillController.SetTValue(stress / totalMaxStress);
             }
             if (stressOverlayInstanceChildlocator)
             {
                 Transform wazzok = stressOverlayInstanceChildlocator.FindChild("StressThreshold");
                 if (wazzok) //dwarven engineering at its finest
-                    wazzok.rotation = Quaternion.Euler(0f, 0f, Mathf.InverseLerp(0f, maxStress, stress) * -360f);
+                    wazzok.rotation = Quaternion.Euler(0f, 0f, Mathf.InverseLerp(0f, totalMaxStress, stress) * -360f);
                 //overlayInstanceChildlocator.FindChild("MinStressThreshold");
             }
             if (uiStressText)
             {
-                StringBuilder stringBuilder = StringBuilderPool.RentStringBuilder();
-                stringBuilder.AppendInt(Mathf.FloorToInt(stress), 1U, 3U).Append("%");
-                uiStressText.text = stringBuilder.ToString();
-                StringBuilderPool.ReturnStringBuilder(stringBuilder);
+                StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
+                string gradient = ColorUtility.ToHtmlStringRGB(Color.Lerp(new Color(0.8f, 0.8f, 0.8f), new Color(0.6f, 0f, 0f), Mathf.Clamp01(stress / totalMaxStress)));
+                stringBuilder.Append($"<color=#{gradient}>").AppendInt(Mathf.FloorToInt(stress), 1U, 3U).Append(" / ").AppendInt(Mathf.FloorToInt(totalMaxStress), 1U, 3U).Append("</color>");
+                uiStressText.SetText(stringBuilder);
+                HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
             }
         }
 
@@ -608,7 +688,7 @@ namespace SS2.Components
         {
             if (healthComponent == bodyHealthComponent)
             {
-                float lostHealth = bodyHealthComponent.fullCombinedHealth - (bodyHealthComponent.health + bodyHealthComponent.shield);
+                float lostHealth = bodyHealthComponent.fullHealth - bodyHealthComponent.health;
                 if ( lostHealth <= 0 )
                 {
                     return;

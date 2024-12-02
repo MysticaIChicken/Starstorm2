@@ -1,4 +1,6 @@
 ﻿using RoR2;
+using SS2;
+using SS2.Components;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -13,13 +15,15 @@ namespace EntityStates.NemCaptain.Weapon
         [SerializeField]
         public float radius;
         [SerializeField]
-        public float minDur = 0.1f;
+        public float minDur = 0f;
         [SerializeField]
         public GameObject areaIndicator;
         [SerializeField]
         public float maxDistance = 256f;
 
+        private NemCaptainController nemCaptainController;
         private GameObject areaIndicatorInstance;
+        private OrderSkillDef activatorOrderSkillDef;
 
         public override void OnEnter()
         {
@@ -32,14 +36,15 @@ namespace EntityStates.NemCaptain.Weapon
                 areaIndicatorInstance = Object.Instantiate(areaIndicator);
                 areaIndicatorInstance.transform.localScale = new Vector3(radius, radius, radius);
             }
+            nemCaptainController = GetComponent<NemCaptainController>();
+            if (activatorSkillSlot.skillDef is OrderSkillDef _activatorOrderSkillDef)
+            {
+                activatorOrderSkillDef = _activatorOrderSkillDef;
+            }
         }
 
         public override void OnExit()
         {
-            Util.PlaySound(Captain.Weapon.CallAirstrike1.fireAirstrikeSoundString, gameObject);
-
-            OnOrderEffect();
-
             characterBody.hideCrosshair = false;
 
             if (areaIndicatorInstance != null)
@@ -62,6 +67,10 @@ namespace EntityStates.NemCaptain.Weapon
         {
             if (!IsKeyDownAuthority() && fixedAge > minDur)
             {
+                Util.PlaySound(Captain.Weapon.CallAirstrike1.fireAirstrikeSoundString, gameObject);
+                nemCaptainController.AddOrderStress(activatorOrderSkillDef.stressValue);
+                nemCaptainController.CycleNextOrder(activatorSkillSlot);
+                OnOrderEffect();
                 outer.SetNextState(new ForcedCooldown());
             }
         }

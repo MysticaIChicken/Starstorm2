@@ -24,13 +24,13 @@ MonoBehaviour:
   interruptPriority: 1
   baseRechargeInterval: 3
   baseMaxStock: 20
-  rechargeStock: 99
+  rechargeStock: 20
   requiredStock: 1
   stockToConsume: 1
   attackSpeedBuffsRestockSpeed: 0
   attackSpeedBuffsRestockSpeed_Multiplier: 1
   resetCooldownTimerOnUse: 1
-  fullRestockOnAssign: 1
+  fullRestockOnAssign: 0
   dontAllowPastMaxStocks: 1
   beginSkillCooldownOnSkillEnd: 0
   cancelSprintingOnActivation: 1
