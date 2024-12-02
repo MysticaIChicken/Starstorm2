@@ -231,10 +231,9 @@ namespace SS2.Components
         {
             get
             {
-                if (freeOrders <= 0)
-                    return false;
-                freeOrders--;
-                return true;
+                if (freeOrders > 0)
+                    return true;
+                return false;
             }
             set
             {
@@ -245,11 +244,18 @@ namespace SS2.Components
             }
         }
 
-        public void AddOrderStress(float amount)
+        public void SetFreeOrders(int amount)
         {
-            if (hasFreeOrders)
+            freeOrders = amount;
+        }
+
+        public void AddOrderStress(float amount, bool ignoreFreeOrders = false)
+        {
+            if (hasFreeOrders && !ignoreFreeOrders)
             {
-                //lol
+                freeOrders--;
+                if (NetworkServer.active && characterBody.HasBuff(SS2Content.Buffs.bdTacticalDecisionMaking))
+                    characterBody.RemoveBuff(SS2Content.Buffs.bdTacticalDecisionMaking);
             }
             else
             {
@@ -443,9 +449,14 @@ namespace SS2.Components
         /// Call the next order to the hand for the specified skillSlot. If called manually within an entityState (In which case the skillDef's autoHandleOrderQueue should be false), call this upon activatorSkillSlot.
         /// </summary>
         /// <param name="skill"></param>
-        public void CycleNextOrder(GenericSkill skill)
+        public void CycleNextOrder(GenericSkill skill, bool ignoreFreeOrders = false)
         {
             //Debug.Log("CycleNextOrder()");
+            if (hasFreeOrders && !ignoreFreeOrders)
+            {
+                CycleAllOrders();
+                return;
+            }
             switch (skill)
             {
                 case GenericSkill _ when skill == skillLocator.primary:

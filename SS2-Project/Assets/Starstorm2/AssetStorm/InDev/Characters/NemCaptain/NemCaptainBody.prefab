@@ -2268,7 +2268,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3074484118546820324}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2288,7 +2288,7 @@ CapsuleCollider:
   m_Radius: 0.54
   m_Height: 2.09
   m_Direction: 1
-  m_Center: {x: 0.021859974, y: 1, z: -0.027962774}
+  m_Center: {x: 0.021859974, y: 0, z: -0.027962774}
 --- !u!114 &8075792545581264677
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4501,7 +4501,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeedPenaltyCoefficient: 1
-  characterDirection: {fileID: 0}
+  characterDirection: {fileID: 8580278735659730853}
   muteWalkMotion: 0
   mass: 100
   airControl: 0.25
@@ -4633,6 +4633,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9287d9f3a2858dc428b6ed5a9b26bb2d, type: 2}
   - {fileID: 11400000, guid: 91d15b19306c5b047b3ce0c7deb843f4, type: 2}
   - {fileID: 11400000, guid: 37ddbb30aa1667342bd8a8e6f858a2d0, type: 2}
+  - {fileID: 11400000, guid: 86749ee6a1d68df40a1b975a32c11f7d, type: 2}
   deck2:
   - {fileID: 11400000, guid: b369e22c860ade5479e7d5abd4dd40d2, type: 2}
   - {fileID: 11400000, guid: 30daad84d69abc1499a1ed1f9dc9570e, type: 2}
@@ -4663,8 +4664,7 @@ MonoBehaviour:
   stressGainedOnItem: -1
   stressOnOutOfOrders: 35
   bonusMaxStressStacks: 0
-  stressOverlayPrefab: {fileID: 1894802512682313, guid: 7aa69281e0edca147beeff3020ab1703,
-    type: 3}
+  stressOverlayPrefab: {fileID: 0}
   stressOverlayChildLocatorEntry: CrosshairExtras
   cardOverlayPrefab: {fileID: 3976287298108836530, guid: 8f3b51d523e04d749ac348210c6bcfa2,
     type: 3}
