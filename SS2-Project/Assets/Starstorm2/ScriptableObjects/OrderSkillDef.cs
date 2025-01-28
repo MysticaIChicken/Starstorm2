@@ -77,16 +77,27 @@ namespace SS2
             return ncc.isTotalReset;
         }
 
+        private bool HasEnoughStress([NotNull] GenericSkill skillSlot)
+        {
+            if (canCastIfWillOverstress)
+                return true;
+            NemCaptainController ncc = ((InstanceData)skillSlot.skillInstanceData).ncc;
+            float _stressValue = stressValue;
+            if (ncc.hasManaReductionBuff)
+                _stressValue /= 2;
+            return (ncc.totalMaxStress - ncc.stress) > _stressValue;
+        }
+
         public override bool CanExecute([NotNull] GenericSkill skillSlot)
         {
             NemCaptainController ncc = ((InstanceData)skillSlot.skillInstanceData).ncc;
-            return base.CanExecute(skillSlot) && (!IsOverstressed(skillSlot) || canCastIfOverstressed) && !IsTotalReset(skillSlot) && (((ncc.totalMaxStress - ncc.stress) > stressValue) || canCastIfWillOverstress);
+            return base.CanExecute(skillSlot) && (!IsOverstressed(skillSlot) || canCastIfOverstressed) && !IsTotalReset(skillSlot) && HasEnoughStress(skillSlot);
         }
 
         public override bool IsReady([NotNull] GenericSkill skillSlot)
         {
             NemCaptainController ncc = ((InstanceData)skillSlot.skillInstanceData).ncc;
-            return base.IsReady(skillSlot) && (!IsOverstressed(skillSlot) || canCastIfOverstressed) && !IsTotalReset(skillSlot) && (((ncc.totalMaxStress - ncc.stress) > stressValue) || canCastIfWillOverstress);
+            return base.IsReady(skillSlot) && (!IsOverstressed(skillSlot) || canCastIfOverstressed) && !IsTotalReset(skillSlot) && HasEnoughStress(skillSlot);
         }
 
         public override void OnExecute([NotNull] GenericSkill skillSlot)

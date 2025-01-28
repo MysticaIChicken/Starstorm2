@@ -20,6 +20,7 @@ namespace SS2.Components
         public CharacterBody characterBody;
         public SkillLocator skillLocator;
         public Animator characterAnimator;
+        public TextMeshProUGUI gaming;
         
 
         [Header("Drone Orders")]
@@ -199,6 +200,14 @@ namespace SS2.Components
             }
         }
 
+        public bool hasManaReductionBuff
+        {
+            get
+            {
+                return characterBody && characterBody.HasBuff(SS2Content.Buffs.bdNemCapManaReduction);
+            }
+        }
+
         private HealthComponent bodyHealthComponent
         {
             get
@@ -249,13 +258,19 @@ namespace SS2.Components
             freeOrders = amount;
         }
 
+        public void AddStressAndCycleNextOrder(float amount, GenericSkill activatorSkillSlot, bool ignoreFreeOrders = false)
+        {
+            CycleNextOrder(activatorSkillSlot, ignoreFreeOrders);
+            AddOrderStress(amount, ignoreFreeOrders);
+        }
+
         public void AddOrderStress(float amount, bool ignoreFreeOrders = false)
         {
             if (hasFreeOrders && !ignoreFreeOrders)
             {
                 freeOrders--;
-                if (NetworkServer.active && characterBody.HasBuff(SS2Content.Buffs.bdTacticalDecisionMaking))
-                    characterBody.RemoveBuff(SS2Content.Buffs.bdTacticalDecisionMaking);
+               /* if (NetworkServer.active && characterBody.HasBuff(SS2Content.Buffs.bdTacticalDecisionMaking))
+                    characterBody.RemoveBuff(SS2Content.Buffs.bdTacticalDecisionMaking);*/
             }
             else
             {
@@ -275,8 +290,9 @@ namespace SS2.Components
             {
                 amount = 0;
             }
+
             //halve mana used if has reduction buff
-            if (characterBody.HasBuff(SS2Content.Buffs.bdNemCapManaReduction) && amount > 0)
+            if (hasManaReductionBuff && amount > 0)
                 amount /= 2;
 
             Network_stress = Mathf.Clamp(stress + amount, minStress, totalMaxStress);
@@ -286,7 +302,7 @@ namespace SS2.Components
         {
             //probably ui stuff here later gulp
 
-            Network_stress = newStress;
+            
 
             if (newStress >= totalMaxStress && !isOverstressed) //I kinda wanna switch the overstress mechanic to an entitystatemachine ala void fiend/herald ngl because I'm not a fan of this. Buffs aren't fully networked and shouldn't be the deciding factor for logic outside of stats
             {
@@ -299,6 +315,8 @@ namespace SS2.Components
                 //characterBody.SetBuffCount(SS2Content.Buffs.bdOverstress.buffIndex, 0);
                 characterBody.RemoveBuff(SS2Content.Buffs.bdOverstress.buffIndex);
             }
+
+            Network_stress = newStress;
         }
 
         private void OnEnable()
@@ -565,7 +583,16 @@ namespace SS2.Components
 
         private void OnStressOverlayInstanceAdded(OverlayController controller, GameObject instance)
         {
-            fillUiList.Add(instance.GetComponent<ImageFillController>());
+            ImageFillController uiFillController = instance.GetComponentInChildren<ImageFillController>();
+            if (uiFillController != null)
+            {
+                Debug.Log("uiFillController found!");
+            }
+            else
+            {
+                Debug.Log("uiFillController not found FUCK");
+            }
+            fillUiList.Add(uiFillController);
             uiStressText = instance.GetComponentInChildren<TextMeshProUGUI>();
             if (uiStressText != null)
             {

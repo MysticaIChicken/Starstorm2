@@ -68,8 +68,7 @@ namespace EntityStates.NemCaptain.Weapon
             if (!IsKeyDownAuthority() && fixedAge > minDur)
             {
                 Util.PlaySound(Captain.Weapon.CallAirstrike1.fireAirstrikeSoundString, gameObject);
-                nemCaptainController.AddOrderStress(activatorOrderSkillDef.stressValue);
-                nemCaptainController.CycleNextOrder(activatorSkillSlot);
+                nemCaptainController.AddStressAndCycleNextOrder(activatorOrderSkillDef.stressValue, activatorSkillSlot);
                 OnOrderEffect();
                 outer.SetNextState(new ForcedCooldown());
             }

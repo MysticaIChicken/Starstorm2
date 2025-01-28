@@ -18,7 +18,7 @@ MonoBehaviour:
   keywordTokens:
   - KEYWORD_STUNNING
   icon: {fileID: 21300000, guid: f870fd3b1ad0215409e17f3b8e51a76c, type: 3}
-  activationStateMachineName: sus
+  activationStateMachineName: 
   activationState:
     _typeName: 
   interruptPriority: 7

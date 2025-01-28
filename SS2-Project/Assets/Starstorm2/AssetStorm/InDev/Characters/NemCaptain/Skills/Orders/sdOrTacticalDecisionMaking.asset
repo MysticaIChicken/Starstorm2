@@ -16,7 +16,7 @@ MonoBehaviour:
   skillNameToken: SS2_NEMCAPTAIN_ORDERTDM_NAME
   skillDescriptionToken: SS2_NEMCAPTAIN_ORDERTDM_DESCRIPTION
   keywordTokens: []
-  icon: {fileID: 21300000, guid: e0dbd2ad7dadf4f44b93d04b0ce2a816, type: 3}
+  icon: {fileID: 21300000, guid: eb8989bd44e00c146897b89edea53890, type: 3}
   activationStateMachineName: Weapon
   activationState:
     _typeName: EntityStates.NemCaptain.Weapon.TacticalDecisionMaking, Starstorm2,

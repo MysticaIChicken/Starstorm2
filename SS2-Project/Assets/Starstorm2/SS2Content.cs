@@ -557,7 +557,7 @@ namespace SS2
 
             public static BuffDef bdTotalReset;
 
-            public static BuffDef bdTacticalDecisionMaking;
+            //public static BuffDef bdTacticalDecisionMaking;
 
             public static BuffDef bdNemCapDroneBuff;
 

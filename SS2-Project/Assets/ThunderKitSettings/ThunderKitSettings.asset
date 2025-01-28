@@ -30,7 +30,6 @@ MonoBehaviour:
   SelectedPipeline: {fileID: 0}
   SelectedManifest: {fileID: 0}
   QuickAccessPipelines:
-  - {fileID: 11400000, guid: 7197ae732c196234bab682496218319b, type: 2}
   - {fileID: 11400000, guid: 5568407c00445a94d813bd13d91bc460, type: 2}
   - {fileID: 11400000, guid: 00bbc80fe004c7b4ca79ec7027dd4858, type: 2}
   - {fileID: 11400000, guid: d424f9d32be64004b8e7493770703b56, type: 2}

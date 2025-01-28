@@ -15,11 +15,11 @@ namespace EntityStates.NemCaptain.Weapon
             nemCaptainController = GetComponent<NemCaptainController>();
 
             nemCaptainController.SetFreeOrders(2);
-            if (NetworkServer.active)
+            /*if (NetworkServer.active)
             {
                 characterBody.AddBuff(SS2Content.Buffs.bdTacticalDecisionMaking);
                 characterBody.AddBuff(SS2Content.Buffs.bdTacticalDecisionMaking);
-            }
+            }*/
             nemCaptainController.CycleAllOrders();
         }
     }

@@ -16,23 +16,23 @@ namespace SS2.Survivors
 
         public static BuffDef _buffDefOverstress;
         public static BuffDef _buffDefTotalReset;
-        public static BuffDef _buffDefTacticalDecisionMaking;
+        //public static BuffDef _buffDefTacticalDecisionMaking;
 
         public override void Initialize()
         {
             _buffDefOverstress = AssetCollection.FindAsset<BuffDef>("bdOverstress");
             _buffDefTotalReset = AssetCollection.FindAsset<BuffDef>("bdTotalReset");
+            //_buffDefTacticalDecisionMaking = AssetCollection.FindAsset<BuffDef>("bdTacticalDecisionMaking");
 
             //Temporary but looks kinda cool ngl
-            _buffDefTacticalDecisionMaking = AssetCollection.FindAsset<BuffDef>("bdTacticalDecisionMaking");
-            _buffDefTacticalDecisionMaking.iconSprite = Addressables.LoadAssetAsync<BuffDef>("RoR2/DLC2/bdDisableAllSkills.asset").WaitForCompletion().iconSprite;
-            _buffDefTacticalDecisionMaking.buffColor = new Color(0.2f, 0.6f, 0.2f);
+
+            //_buffDefTacticalDecisionMaking.iconSprite = Addressables.LoadAssetAsync<BuffDef>("RoR2/DLC2/bdDisableAllSkills.asset").WaitForCompletion().iconSprite;
+            //_buffDefTacticalDecisionMaking.buffColor = new Color(0.2f, 0.6f, 0.2f);
 
             ModifyPrefab();
             R2API.RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
             On.RoR2.GenericSkill.RecalculateMaxStock += (orig, self) =>
             {
-                Debug.Log("test");
                 if (self.skillDef != null && self.skillDef is OrderSkillDef orderSkillDef)
                 {
                     self.maxStock = (int)orderSkillDef.stressValue;
@@ -69,6 +69,15 @@ namespace SS2.Survivors
                 }
             }
         }
+
+        /*public sealed class TacticalDecisionMakingBuffBehavior : BaseBuffBehavior, IBodyStatArgModifier
+        {
+            [BuffDefAssociation]
+            private static BuffDef GetBuffDef() => _buffDefTacticalDecisionMaking;
+            public void ModifyStatArguments(RecalculateStatsAPI.StatHookEventArgs args)
+            {
+            }
+        }*/
 
         private void RecalculateStatsAPI_GetStatCoefficients(CharacterBody sender, R2API.RecalculateStatsAPI.StatHookEventArgs args)
         {
