@@ -39,7 +39,7 @@ namespace SS2.Items
             loaderJumpR.Name = "SS2-JumpIceToolR";
             loaderJumpR.Clip = SS2Assets.LoadAsset<AnimationClip>("LoaderArmature_IceToolRight", SS2Bundle.Vanilla);
 
-            loaderMods.NewStates.Add("Body", new List<State>{ loaderJumpF, loaderJumpB, loaderJumpL, loaderJumpR });
+            loaderMods.NewStates.Add("Body", new List<State> { loaderJumpF, loaderJumpB, loaderJumpL, loaderJumpR });
             AnimationsAPI.AddModifications(loader, runtimeLoader, loaderMods);
             var animLoader = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Loader/LoaderBody.prefab").WaitForCompletion().GetComponentInChildren<Animator>();
             AnimationsAPI.AddAnimatorController(animLoader, runtimeLoader);

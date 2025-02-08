@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Runtime.CompilerServices;
 using UnityEngine.AddressableAssets;
 using MSU;
+using SS2;
 using System.Collections;
 using RoR2.ContentManagement;
 using R2API;
@@ -14,15 +15,34 @@ namespace SS2.Survivors
         public override SS2AssetRequest<SurvivorAssetCollection> AssetRequest => SS2Assets.LoadAssetAsync<SurvivorAssetCollection>("acNemCaptain", SS2Bundle.Indev);
 
         public static BuffDef _buffDefOverstress;
+        public static BuffDef _buffDefTotalReset;
+        //public static BuffDef _buffDefTacticalDecisionMaking;
 
         public override void Initialize()
         {
             _buffDefOverstress = AssetCollection.FindAsset<BuffDef>("bdOverstress");
+            _buffDefTotalReset = AssetCollection.FindAsset<BuffDef>("bdTotalReset");
+            //_buffDefTacticalDecisionMaking = AssetCollection.FindAsset<BuffDef>("bdTacticalDecisionMaking");
+
+            //Temporary but looks kinda cool ngl
+
+            //_buffDefTacticalDecisionMaking.iconSprite = Addressables.LoadAssetAsync<BuffDef>("RoR2/DLC2/bdDisableAllSkills.asset").WaitForCompletion().iconSprite;
+            //_buffDefTacticalDecisionMaking.buffColor = new Color(0.2f, 0.6f, 0.2f);
+
             ModifyPrefab();
             R2API.RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+            On.RoR2.GenericSkill.RecalculateMaxStock += (orig, self) =>
+            {
+                if (self.skillDef != null && self.skillDef is OrderSkillDef orderSkillDef)
+                {
+                    self.maxStock = (int)orderSkillDef.stressValue;
+                }
+                else
+                    orig(self);
+            };
         }
 
-        public sealed class OvertressBuffBehavior : BaseBuffBehaviour, IBodyStatArgModifier
+        public sealed class OverstressBuffBehavior : BaseBuffBehaviour, IBodyStatArgModifier
         {
             [BuffDefAssociation]
             private static BuffDef GetBuffDef() => _buffDefOverstress;
@@ -36,6 +56,28 @@ namespace SS2.Survivors
                 }
             }
         }
+
+        public sealed class TotalResetBuffBehavior : BaseBuffBehaviour, IBodyStatArgModifier
+        {
+            [BuffDefAssociation]
+            private static BuffDef GetBuffDef() => _buffDefTotalReset;
+            public void ModifyStatArguments(RecalculateStatsAPI.StatHookEventArgs args)
+            {
+                if (hasAnyStacks)
+                {
+                    args.moveSpeedMultAdd += 0.25f;
+                }
+            }
+        }
+
+        /*public sealed class TacticalDecisionMakingBuffBehavior : BaseBuffBehavior, IBodyStatArgModifier
+        {
+            [BuffDefAssociation]
+            private static BuffDef GetBuffDef() => _buffDefTacticalDecisionMaking;
+            public void ModifyStatArguments(RecalculateStatsAPI.StatHookEventArgs args)
+            {
+            }
+        }*/
 
         private void RecalculateStatsAPI_GetStatCoefficients(CharacterBody sender, R2API.RecalculateStatsAPI.StatHookEventArgs args)
         {
@@ -55,7 +97,7 @@ namespace SS2.Survivors
 
         public override bool IsAvailable(ContentPack contentPack)
         {
-            return false;
+            return true;
         }
     }
 }

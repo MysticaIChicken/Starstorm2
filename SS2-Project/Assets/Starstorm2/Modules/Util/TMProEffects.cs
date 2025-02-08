@@ -7,7 +7,7 @@ namespace SS2
 {
     //ty for permission to use this Mystic :)
 
-    internal static class TMProEffects
+    public static class TMProEffects
     {
         private static bool enabled = true;
 
